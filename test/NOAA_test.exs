@@ -36,13 +36,13 @@ defmodule Weathernow.NOAATest do
   end
 
   test "handle_response handles unsuccessful responses" do
-    {:error, data, code} = handle_response(unsuccessful_response, "RDU")
+    {:error, {data, code}} = handle_response(unsuccessful_response, "RDU")
     assert data == "404"
     assert code == "RDU"
   end
 
   test "handle_response handles error responses" do
-    {:error, data, code} = handle_response(error_response, "RDU")
+    {:error, {data, code}} = handle_response(error_response, "RDU")
     assert data == "uh-oh"
     assert code == "RDU"
   end

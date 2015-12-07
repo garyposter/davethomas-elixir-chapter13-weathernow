@@ -20,14 +20,6 @@ defmodule Weathernow.NOAA do
                    Record.extract(:imageType, from: xml_path)
 
   @doc """
-  For each airport code, get and parse the weather observations.
-
-  Probably will be removed.
-  """
-  def fetch(airport_codes) when is_list(airport_codes), do:
-    Enum.map(airport_codes, &fetch/1)
-
-  @doc """
   Fetch and parse the weather observations for a given airport code.
   """
   def fetch(airport_code) do
@@ -52,8 +44,8 @@ defmodule Weathernow.NOAA do
   def handle_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}, _),
     do: {:ok, handle_body(body)}
   def handle_response({:ok, %HTTPoison.Response{status_code: status_code}}, code),
-    do: {:error, to_string(status_code), code}
-  def handle_response({:error, response}, code), do: {:error, response, code}
+    do: {:error, {to_string(status_code), code}}
+  def handle_response({:error, response}, code), do: {:error, {response, code}}
 
   def erlsom_transform(data = current_observation()), do:
     Enum.into(current_observation(data), Map.new, &_transform_value/1)

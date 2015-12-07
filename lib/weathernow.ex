@@ -2,6 +2,8 @@ defmodule Weathernow do
   @moduledoc """
   CLI for getting the weather for a given airport.
   """
+  require Monad.Error, as: Error
+  import Error
 
   @header_names [
     weather: "Weather",
@@ -41,38 +43,37 @@ defmodule Weathernow do
   end
 
   def process({codes, header_names}) do
-    codes
-    |> Weathernow.NOAA.fetch
-    |> handle_errors # XXX investigate monads to be able to insert into the
-                     # per-airport pipeline below.
-    |> Enum.map(
-      &(pop_all(&1, [:location, :latitude, :longitude, :observation_time]))
-      |> prepare_headers(header_names)
-      |> display
-      )
+    Enum.map(
+      codes, fn(code) ->
+        Error.p do
+          Weathernow.NOAA.fetch(code)
+          |> pop_all([:location, :latitude, :longitude, :observation_time])
+          |> prepare_headers(header_names)
+          |> display
+        end
+      end)
+    |> handle_errors
   end
 
-  def handle_errors([]), do: []
-  def handle_errors([{:ok, data} | rest]), do: [data | handle_errors(rest)]
-  def handle_errors([{:error, message, airport_code} | rest]) do
-    IO.puts("Error retrieving #{airport_code}: #{message}")
-    handle_errors(rest)
-  end
+  def handle_errors(list), do:
+    for {:error, {message, airport_code}} <- list, do:
+        IO.puts("Error retrieving #{airport_code}: #{message}")
 
   def pop_all(dict, keys, default \\ nil), do: _pop_all(dict, keys, default, [])
 
-  defp _pop_all(dict, [], _default, values), do: {Enum.reverse(values), dict}
+  defp _pop_all(dict, [], _default, values), do:
+    {:ok, {Enum.reverse(values), dict}}
   defp _pop_all(dict, [first | rest], default, values) do
     {value, new_dict} = Dict.pop(dict, first, default)
     _pop_all(new_dict, rest, default, [value | values])
   end
 
   def prepare_headers({identifiers, dict}, header_names), do:
-    {identifiers, Enum.map(
+    {:ok, {identifiers,Enum.map(
       header_names,
       # XXX to_string is only necessary because erlsom actually handles ints.
       # Using SweetXml's xpath makes this unnecessary.
-      fn({key, header}) -> [header, to_string(dict[key])] end)}
+      fn({key, header}) -> [header, to_string(dict[key])] end)}}
 
   def display({[location | [latitude | [longitude | time]]], values}) do
     IO.puts("#{location} (#{latitude}, #{longitude})")
@@ -82,6 +83,7 @@ defmodule Weathernow do
       IO.puts(Weathernow.CLITable.generate_row(row, lengths))
     end)
     IO.write("\n")
+    {:ok, location}
   end
 
   # def filter_into(source, filter, start, transform \\ &(&1)) do

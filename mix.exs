@@ -29,6 +29,9 @@ defmodule Weathernow.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:httpoison, "~> 0.8"}, {:sweet_xml, "~> 0.5"}, {:erlsom, "~> 1.2"}]
+    [{:httpoison, "~> 0.8"},
+     {:sweet_xml, "~> 0.5"},
+     {:erlsom, "~> 1.2"},
+     {:monad, "~> 1.0"}]
   end
 end
