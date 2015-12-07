@@ -17,8 +17,17 @@ defmodule Weathernow.NOAATest do
 
   test "handle_body extracts expected observations" do
     data = handle_body(body)
+    assert data[:dewpoint_string] == "26.1 F (-3.3 C)"
+    assert data[:latitude] == "35.89223"
+    assert data[:location] == "Raleigh / Durham, Raleigh-Durham International Airport, NC"
+    assert data[:longitude] == "-78.78185"
+    assert data[:observation_time] == "Last Updated on Dec 3 2015, 8:51 am EST"
+    assert data[:pressure_string] == "1020.9 mb"
+    assert data[:relative_humidity] == 48 # XXX a string for xpath implementation
+    assert data[:temperature_string] == "45.0 F (7.2 C)"
+    assert data[:visibility_mi] == "10.00"
     assert data[:weather] == "Mostly Cloudy"
-    # XXX more
+    assert data[:wind_string] == "Northwest at 6.9 MPH (6 KT)"
   end
 
   test "handle_response handles successful responses" do

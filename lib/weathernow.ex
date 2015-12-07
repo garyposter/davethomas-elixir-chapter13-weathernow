@@ -70,7 +70,9 @@ defmodule Weathernow do
   def prepare_headers({identifiers, dict}, header_names), do:
     {identifiers, Enum.map(
       header_names,
-      fn({key, header}) -> [header, dict[key]] end)}
+      # XXX to_string is only necessary because erlsom actually handles ints.
+      # Using SweetXml's xpath makes this unnecessary.
+      fn({key, header}) -> [header, to_string(dict[key])] end)}
 
   def display({[location | [latitude | [longitude | time]]], values}) do
     IO.puts("#{location} (#{latitude}, #{longitude})")
